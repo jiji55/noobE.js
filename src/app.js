@@ -22,9 +22,8 @@ noobe.Container = function(){
 
 	// is different methods for arrays and single images even needed?
 	this.add = function( imgObject ){	
-		console.log( imgObject );
 		for ( var key in imgObject ) {
-			this.contents.push( imgArray[i] );
+			this.contents[key] = imgObject[key];
 		} 
 	}
 }
@@ -36,14 +35,13 @@ noobe.App = function( width, height ){
 	this.canvas.height = height;
 	document.body.appendChild( this.canvas );
 	this.context = this.canvas.getContext( "2d" );
-	}
 
 	this.render = function( Container ){
-		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height );
+		//this.context.clearRect(0, 0, this.canvas.width, this.canvas.height );
 
-		for ( var i = 0; i < Container.contents.length; i++ ) {
+		for ( var key in Container.contents ) {
 			// this.drawImage( Container.contents[i], Container.contents[i].x, Container.contents[i].x, )
-			this.context.drawImage( Container.contents[i], i*50, i*50 )
+			this.context.drawImage( Container.contents[key], 0, 0 )
 		}
 	}
 
@@ -59,7 +57,6 @@ noobe.App = function( width, height ){
 		var count = Object.keys(images).length;
 		var whenCompleted = function ( images, i ){
 			count--;
-			console.log(count);
 			if ( count == 0 ){
 				startLoop();
 			}
@@ -76,11 +73,10 @@ noobe.App = function( width, height ){
 		var whenLoaded = function(e){
 			e.target.removeEventListener( "load", whenLoaded );
 			whenCompleted( images, objectLength )
-		}	
-
-		this.loadedImages.key = new Image();
-		this.loadedImages.key.addEventListener( "load", whenLoaded );
-		this.loadedImages.key.src = images[key];
+		}
+		this.loadedImages[key] = new Image();
+		this.loadedImages[key].addEventListener( "load", whenLoaded );
+		this.loadedImages[key].src = images[key];
 	}
 
 	this.getMousePos = function( canvas, event ){
@@ -150,4 +146,5 @@ noobe.App = function( width, height ){
 
 		// Need to return the input so that we can override undefined methods ie. .pressed / .released
 		return input;
+		}
 	}
