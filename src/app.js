@@ -1,4 +1,4 @@
-// have to start somewhere..
+// have to start somewhere to learn..
 /*
 * TODO
 * - insert images
@@ -14,29 +14,49 @@ function startLoop() {
 }
 */
 
-class App {
+// namespace
+var noobe = {};
 
-	constructor( width, height ){
-		this.loadedImages = [];
-		this.canvas = document.createElement( 'canvas' );
-		this.canvas.width = width;
-		this.canvas.height = height;
-		document.body.appendChild( this.canvas );
-		this.context = this.canvas.getContext( "2d" );
+noobe.Container = function(){
+	this.contents = {};
+
+	// is different methods for arrays and single images even needed?
+	this.add = function( imgObject ){	
+		console.log( imgObject );
+		for ( var key in imgObject ) {
+			this.contents.push( imgArray[i] );
+		} 
+	}
+}
+
+noobe.App = function( width, height ){
+	this.loadedImages = {};
+	this.canvas = document.createElement( 'canvas' );
+	this.canvas.width = width;
+	this.canvas.height = height;
+	document.body.appendChild( this.canvas );
+	this.context = this.canvas.getContext( "2d" );
 	}
 
-	container(){
+	this.render = function( Container ){
+		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height );
 
+		for ( var i = 0; i < Container.contents.length; i++ ) {
+			// this.drawImage( Container.contents[i], Container.contents[i].x, Container.contents[i].x, )
+			this.context.drawImage( Container.contents[i], i*50, i*50 )
+		}
 	}
 
 	// the loop needs to start after assets have been loaded, which is why we pass it in the load method
-	load_images( images, startLoop ){
-		//convert single img to array
-		if ( images.length === "undefined" ){
-			console.log("The method probably doesn't support single images yet")
-			images = [images];
-		}
-		var count = images.length;
+	// only objects allowed eg.
+	/*
+	var images = {
+			"test" : "game/assets/test.jpg",
+			"test2" : "game/assets/test2.jpg"
+			 };
+	*/
+	this.load_images = function( images, startLoop ){
+		var count = Object.keys(images).length;
 		var whenCompleted = function ( images, i ){
 			count--;
 			console.log(count);
@@ -45,29 +65,25 @@ class App {
 			}
 		}
 
-		for ( var i = 0; i < images.length; i++ ){
-			this.loadImg( images, i, whenCompleted )
+		for ( var key in images ){
+			this.loadImg( images, key, Object.keys(images).length, whenCompleted )
 		}
 	}
 
-	loadImg( images, i, whenCompleted ) {
+	this.loadImg = function( object, key, objectLength, whenCompleted ) {
 
 		// (e) is the event object that gets passed down
 		var whenLoaded = function(e){
 			e.target.removeEventListener( "load", whenLoaded );
-			whenCompleted( images, i )
+			whenCompleted( images, objectLength )
 		}	
 
-		this.loadedImages[i] = new Image();
-		this.loadedImages[i].addEventListener( "load", whenLoaded );
-		this.loadedImages[i].src = images[i];
+		this.loadedImages.key = new Image();
+		this.loadedImages.key.addEventListener( "load", whenLoaded );
+		this.loadedImages.key.src = images[key];
 	}
 
-	draw_image( image, x, y ){
-		this.context.drawImage( image, x, y );
-	}
-
-	getMousePos( canvas, event ){
+	this.getMousePos = function( canvas, event ){
 		var rect = canvas.getBoundingClientRect();
 		return {
 			x: event.clientX - rect.left,
@@ -75,7 +91,16 @@ class App {
 		};
 	}
 
-	clickInsideBox( rect, mousePos ){
+	/*
+	eg.
+	_a.canvas.addEventListener( 'click', function(event){
+		var mousePos = _a.getMousePos( _a.canvas, event );
+		if (_a.clickInsideBox( rect, mousePos )){
+			console.log("inside box");
+		}
+	});
+	*/
+	this.clickInsideBox = function( rect, mousePos ){
 		if ( rect.x < mousePos.x && 
 			 rect.x + rect.width > mousePos.x  && 
 			 rect.y < mousePos.y &&
@@ -93,7 +118,7 @@ class App {
 		left = _a.registerInput( 65 );
 		left.pressed / .released = function(){ ... };
 	*/
-	registerInput( key_code ){
+	this.registerInput = function( key_code ){
 		var input = {};
 		input.keyCode = key_code;
 		input.isUp = true;
@@ -126,4 +151,3 @@ class App {
 		// Need to return the input so that we can override undefined methods ie. .pressed / .released
 		return input;
 	}
-}
