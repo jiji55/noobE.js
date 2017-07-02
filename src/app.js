@@ -1,17 +1,9 @@
 // have to start somewhere to learn..
 /*
-* TODO
-* - insert images
-* - controls?
-* Example usage for now:
-var images = ["game/assets/test.jpg",
-				"game/assets/test2.jpg"];
-
-newApp.load_images( images, startLoop );
-
-function startLoop() {
-	newApp.draw_image( newApp.loadedImages[0], 0, 0 ); // draws test.jpg
-}
+* TODO:
+* default controls?
+* animations
+* Sprites from spritesheets
 */
 
 // namespace
@@ -23,7 +15,21 @@ noobe.Container = function(){
 	// is different methods for arrays and single images even needed?
 	this.add = function( imgObject ){	
 		for ( var key in imgObject ) {
-			this.contents[key] = imgObject[key];
+
+			this.contents[key] = {};
+			this.contents[key]["imgObject"] = imgObject[key];
+			// where to start image clipping
+			this.contents[key].clipx = 0;
+			this.contents[key].clipy = 0;
+			// how much to clip
+			this.contents[key].clipWidth = imgObject[key].width;
+			this.contents[key].clipHeight = imgObject[key].height;
+			// where to draw on canvas
+			this.contents[key].x = 0;
+			this.contents[key].y = 0;
+			// img width / height
+			this.contents[key].width = imgObject[key].width;
+			this.contents[key].height = imgObject[key].height;
 		} 
 	}
 }
@@ -36,12 +42,20 @@ noobe.App = function( width, height ){
 	document.body.appendChild( this.canvas );
 	this.context = this.canvas.getContext( "2d" );
 
-	this.render = function( Container ){
-		//this.context.clearRect(0, 0, this.canvas.width, this.canvas.height );
+	this.render = function( container ){
+		this.context.clearRect( 0, 0, this.canvas.width, this.canvas.height );
 
-		for ( var key in Container.contents ) {
+		for ( var key in container.contents ) {
 			// this.drawImage( Container.contents[i], Container.contents[i].x, Container.contents[i].x, )
-			this.context.drawImage( Container.contents[key], 0, 0 )
+			this.context.drawImage( container.contents[key]["imgObject"], 
+									container.contents[key].clipx,
+									container.contents[key].clipy,
+									container.contents[key].clipWidth,
+									container.contents[key].clipHeight,
+									container.contents[key].x, 
+									container.contents[key].y,
+									container.contents[key].width,
+									container.contents[key].height )
 		}
 	}
 
@@ -53,12 +67,13 @@ noobe.App = function( width, height ){
 			"test2" : "game/assets/test2.jpg"
 			 };
 	*/
-	this.load_images = function( images, startLoop ){
+	this.load_images = function( images, setup ){
 		var count = Object.keys(images).length;
 		var whenCompleted = function ( images, i ){
 			count--;
 			if ( count == 0 ){
-				startLoop();
+				// start setting things up after images are loaded
+				setup();
 			}
 		}
 
@@ -74,6 +89,7 @@ noobe.App = function( width, height ){
 			e.target.removeEventListener( "load", whenLoaded );
 			whenCompleted( images, objectLength )
 		}
+		this.loadedImages[key] = {};
 		this.loadedImages[key] = new Image();
 		this.loadedImages[key].addEventListener( "load", whenLoaded );
 		this.loadedImages[key].src = images[key];
