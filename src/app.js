@@ -1,37 +1,78 @@
-// have to start somewhere to learn..
-/*
+/* have to start somewhere to learn..
+
 * TODO:
-* default controls?
 * animations
-* Sprites from spritesheets
+* default controls?
+* organize the code better in modules / start using build tools etc
+-> Sprite obj, Container?, graphics -> render method?, 
+    image loader obj, input obj, misc (to be figured out later stuff)
 */
 
+/*
+Ideas for how to do animations:
+-Sprite animation method?, which includes the name of the spritesheet & frame data
+
+*/
 // namespace
 var noobe = {};
 
+/*
+usage:
+	var testSprite = new noobe.Sprite( "128", "128_sprite", 0, 0, 0, 0, 64, 64 );
+	var testSprite2 = new noobe.Sprite( "128", "128_sprite2", 64, 0, 64, 64, 64, 64 );
+
+	_c.to_be_rendered["testSprite"] = testSprite;
+	_c.to_be_rendered["testSprite2"] = testSprite2;
+*/
+noobe.Sprite = function(
+	spritesheet_name, 
+	clipx = 0, 
+	clipy = 0, 
+	x = 0, 
+	y = 0, 
+	width = 64, 
+	height = 64 
+	){
+
+	this.spritesheet_name = spritesheet_name;
+	this.clipx = clipx;
+	this.clipy = clipy;
+	this.clipWidth = width;
+	this.clipHeight = height;
+	this.x = x;
+	this.y = y;
+	this.width = width;
+	this.height = height;
+}
+
 noobe.Container = function(){
-	this.contents = {};
+	// there is smarter way to do this, but I'm going with this for now to progress
+	this.to_be_rendered = {};
 
-	// is different methods for arrays and single images even needed?
-	this.add = function( imgObject ){	
-		for ( var key in imgObject ) {
+	// is this useless ? Probably yes. I'll keep this here for now
+	/*
+	this.add = function( imgObject ){
+		var key = imgObject.name;
+		this.contents[key] = {};
+		this.contents[key].name = key;
+		this.contents[key]["img"] = imgObject["img"]; 
 
-			this.contents[key] = {};
-			this.contents[key]["imgObject"] = imgObject[key];
-			// where to start image clipping
-			this.contents[key].clipx = 0;
-			this.contents[key].clipy = 0;
-			// how much to clip
-			this.contents[key].clipWidth = imgObject[key].width;
-			this.contents[key].clipHeight = imgObject[key].height;
-			// where to draw on canvas
-			this.contents[key].x = 0;
-			this.contents[key].y = 0;
-			// img width / height
-			this.contents[key].width = imgObject[key].width;
-			this.contents[key].height = imgObject[key].height;
-		} 
+		These might not be needed? I'll keep them here for now
+
+		// where to start image clipping
+		this.contents[key].clipx = 0;
+		this.contents[key].clipy = 0;
+		// how much to clip (default none ofc)
+		this.contents[key].clipWidth = imgObject["img"].width;
+		this.contents[key].clipHeight = imgObject["img"].height;
+		// where to draw on canvas
+		this.contents[key].x = 0;
+		this.contents[key].y = 0;
+		// img width / height
+		this.contents[key].width = imgObject["img"].width;
+		this.contents[key].height = imgObject["img"].height;
 	}
+	*/
 }
 
 noobe.App = function( width, height ){
@@ -42,20 +83,21 @@ noobe.App = function( width, height ){
 	document.body.appendChild( this.canvas );
 	this.context = this.canvas.getContext( "2d" );
 
-	this.render = function( container ){
+	this.render = function( sprites ){
 		this.context.clearRect( 0, 0, this.canvas.width, this.canvas.height );
+		for ( var key in sprites ) {
+			this.context.drawImage( 
 
-		for ( var key in container.contents ) {
-			// this.drawImage( Container.contents[i], Container.contents[i].x, Container.contents[i].x, )
-			this.context.drawImage( container.contents[key]["imgObject"], 
-									container.contents[key].clipx,
-									container.contents[key].clipy,
-									container.contents[key].clipWidth,
-									container.contents[key].clipHeight,
-									container.contents[key].x, 
-									container.contents[key].y,
-									container.contents[key].width,
-									container.contents[key].height )
+			this.loadedImages[sprites[key].spritesheet_name]["img"], 					
+			sprites[key].clipx,
+			sprites[key].clipy,
+			sprites[key].clipWidth,
+			sprites[key].clipHeight,
+			sprites[key].x, 
+			sprites[key].y,
+			sprites[key].width,
+			sprites[key].height
+			 )
 		}
 	}
 
@@ -72,7 +114,7 @@ noobe.App = function( width, height ){
 		var whenCompleted = function ( images, i ){
 			count--;
 			if ( count == 0 ){
-				// start setting things up after images are loaded
+				// start setting things up only after images are loaded
 				setup();
 			}
 		}
@@ -89,10 +131,12 @@ noobe.App = function( width, height ){
 			e.target.removeEventListener( "load", whenLoaded );
 			whenCompleted( images, objectLength )
 		}
+
 		this.loadedImages[key] = {};
-		this.loadedImages[key] = new Image();
-		this.loadedImages[key].addEventListener( "load", whenLoaded );
-		this.loadedImages[key].src = images[key];
+		this.loadedImages[key]["name"] = key;
+		this.loadedImages[key]["img"] = new Image();
+		this.loadedImages[key]["img"].addEventListener( "load", whenLoaded );
+		this.loadedImages[key]["img"].src = images[key];
 	}
 
 	this.getMousePos = function( canvas, event ){
